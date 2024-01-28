@@ -64,24 +64,6 @@ struct sshcipher_ctx {
 	const struct sshcipher *cipher;
 };
 
-struct sshcipher {
-	char	*name;
-	u_int	block_size;
-	u_int	key_len;
-	u_int	iv_len;		/* defaults to block_size */
-	u_int	auth_len;
-	u_int	flags;
-#define CFLAG_CBC		(1<<0)
-#define CFLAG_CHACHAPOLY	(1<<1)
-#define CFLAG_AESCTR		(1<<2)
-#define CFLAG_NONE		(1<<3)
-#define CFLAG_INTERNAL		CFLAG_NONE /* Don't use "none" for packets */
-#ifdef WITH_OPENSSL
-	const EVP_CIPHER	*(*evptype)(void);
-#else
-	void	*ignored;
-#endif
-};
 
 static const struct sshcipher ciphers[] = {
 #ifdef WITH_OPENSSL

@@ -1541,6 +1541,7 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
     struct sockaddr *hostaddr, u_short port, struct passwd *pw, int timeout_ms,
     const struct ssh_conn_info *cinfo)
 {
+	printf("%s:%d\n", __FILE__, __LINE__);
 	char *host;
 	char *server_user, *local_user;
 	int r;
@@ -1561,7 +1562,7 @@ ssh_login(struct ssh *ssh, Sensitive *sensitive, const char *orighost,
 
 	/* key exchange */
 	/* authenticate user */
-	debug("Authenticating to %s:%d as '%s'", host, port, server_user);
+	printf("Authenticating to %s:%d as '%s'\n", host, port, server_user);
 	ssh_kex2(ssh, host, hostaddr, port, cinfo);
 	ssh_userauth2(ssh, local_user, server_user, host, sensitive);
 	free(local_user);

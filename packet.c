@@ -86,6 +86,7 @@
 #include "cipher.h"
 #include "sshkey.h"
 #include "kex.h"
+#include "cipher.h"
 #include "digest.h"
 #include "mac.h"
 #include "log.h"
@@ -96,6 +97,8 @@
 #include "packet.h"
 #include "ssherr.h"
 #include "sshbuf.h"
+
+#define PACKET_DEBUG
 
 #ifdef PACKET_DEBUG
 #define DBG(x) x
@@ -856,10 +859,57 @@ ssh_clear_newkeys(struct ssh *ssh, int mode)
 		ssh->kex->newkeys[mode] = NULL;
 	}
 }
+void print_sshcipher_info(const struct sshcipher *cipher) {
+    printf("SSH Cipher Information:\n");
+    printf("cipher_name: %s\n", cipher->name);
+    printf("Block Size: %u\n", cipher->block_size);
+    printf("Key Length: %u\n", cipher->key_len);
+    printf("IV Length: %u\n", cipher->iv_len);
+    printf("Auth Length: %u\n", cipher->auth_len);
+    printf("Flags: %u\n", cipher->flags);
+    // Print additional members as needed
+
+    // Example: printing memory addresses of the struct members
+    printf("Address of Name: %p\n", (void*)cipher->name);
+    // Add more printf statements as needed
+}
+
+void print_sshenc_info(const struct sshenc *enc) {
+    printf("SSH Encryption Information:\n");
+    printf("Name: %s\n", enc->name);
+    printf("Enabled: %d\n", enc->enabled);
+    printf("Key Length: %u\n", enc->key_len);
+    printf("IV Length: %u\n", enc->iv_len);
+
+	printf("Key: ");
+    for (u_int i = 0; i < enc->key_len; ++i) {
+        printf("%02x", enc->key[i]);
+    }
+    printf("\n");
+
+    // Print IV
+    printf("IV: ");
+    for (u_int i = 0; i < enc->iv_len; ++i) {
+        printf("%02x", enc->iv[i]);
+    }
+    printf("\n");
+
+
+    printf("Block Size: %u\n", enc->block_size);
+    // Print additional members as needed
+
+    // Example: printing memory addresses of the struct members
+    printf("sshenc_addr %p\n", (void*)enc);
+    // Add more printf statements as needed
+
+
+	print_sshcipher_info(enc->cipher);
+}
 
 int
 ssh_set_newkeys(struct ssh *ssh, int mode)
 {
+	printf("%s:%d\n", __func__, __LINE__);
 	struct session_state *state = ssh->state;
 	struct sshenc *enc;
 	struct sshmac *mac;
@@ -923,6 +973,9 @@ ssh_set_newkeys(struct ssh *ssh, int mode)
 	/* explicit_bzero(enc->iv,  enc->block_size);
 	   explicit_bzero(enc->key, enc->key_len);
 	   explicit_bzero(mac->key, mac->key_len); */
+
+	print_sshenc_info(enc);
+	
 	if ((comp->type == COMP_ZLIB ||
 	    (comp->type == COMP_DELAYED &&
 	    state->after_authentication)) && comp->enabled == 0) {
@@ -1239,6 +1292,7 @@ ssh_packet_type_is_kex(u_char type)
 int
 ssh_packet_send2(struct ssh *ssh)
 {
+	printf("%s:%d\n", __func__, __LINE__);
 	struct session_state *state = ssh->state;
 	struct packet *p;
 	u_char type;
@@ -1246,6 +1300,14 @@ ssh_packet_send2(struct ssh *ssh)
 
 	if (sshbuf_len(state->outgoing_packet) < 6)
 		return SSH_ERR_INTERNAL_ERROR;
+
+	// int c = 0;
+	// while (c < state->outgoing_packet->size) {
+	// 	printf("%c ", state->outgoing_packet->d[c]);
+	// 	c++;
+	// }
+	printf("\n%s:%d\n", __func__, __LINE__);
+
 	type = sshbuf_ptr(state->outgoing_packet)[5];
 	need_rekey = !ssh_packet_type_is_kex(type) &&
 	    ssh_packet_need_rekeying(ssh, sshbuf_len(state->outgoing_packet));
@@ -1406,8 +1468,15 @@ ssh_packet_read_seqnr(struct ssh *ssh, u_char *typep, u_int32_t *seqnr_p)
 int
 ssh_packet_read(struct ssh *ssh)
 {
+	// printf("\n%s:%d\n", __func__, __LINE__);
 	u_char type;
 	int r;
+	// int c = 0;
+	// while (c < ssh->state->incoming_packet->size) {
+	// 	printf("%c ", ssh->state->incoming_packet->d[c]);
+	// 	c++;
+	// }
+	// printf("\n%s:%d\n", __func__, __LINE__);
 
 	if ((r = ssh_packet_read_seqnr(ssh, &type, NULL)) != 0)
 		fatal_fr(r, "read");

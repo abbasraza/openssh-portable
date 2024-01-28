@@ -1058,6 +1058,7 @@ userauth_none(struct ssh *ssh)
 static int
 userauth_passwd(struct ssh *ssh)
 {
+	printf("%s:%d: userauth_passwd\n", __FILE__, __LINE__);
 	Authctxt *authctxt = (Authctxt *)ssh->authctxt;
 	char *password, *prompt = NULL;
 	const char *host = options.host_key_alias ?  options.host_key_alias :
